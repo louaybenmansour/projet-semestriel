@@ -1,0 +1,278 @@
+% =============================================================================
+% Rapport d'avancement SANS figures (aucune image, compile sans dossier outputs/)
+% Prédiction du risque d'échec scolaire | CRISP-DM
+% Compiler : pdflatex (2 passes pour la table des matières)
+% =============================================================================
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  urlcolor=blue!70!black,
+  citecolor=blue!60!black,
+  pdftitle={Rapport d'avancement (sans figures)},
+  pdfauthor={Projet ML - Student Performance Factors},
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small Rapport d'avancement (texte seul)}
+\lhead{\small Risque d'échec scolaire (CRISP-DM)}
+\cfoot{\thepage}
+
+\titleformat{\section}{\Large\bfseries}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.5em}{}
+
+\newcommand{\notevisuel}[1]{%
+  \begin{quote}\small\itshape
+  \textbf{Illustration (non incluse).} #1
+  \end{quote}
+}
+
+\begin{document}
+
+\begin{titlepage}
+  \centering
+  \vspace*{1.5cm}
+  {\LARGE\bfseries Rapport d'avancement du projet\par}
+  \vspace{0.8cm}
+  {\Huge\bfseries Prédiction du risque d'échec scolaire\par}
+  \vspace{0.5cm}
+  {\large à partir du jeu de données \textit{Student Performance Factors}\par}
+  \vfill
+  {\large Méthodologie CRISP-DM\par}
+  \vspace{0.5cm}
+  {\normalsize\textit{Version du document sans figures intégrées (PDF autonome).}\par}
+  \vspace{1cm}
+  {\large \today\par}
+  \vspace{1.5cm}
+  {\normalsize Document technique de synthèse (état d'avancement de A à Z)\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% -----------------------------------------------------------------------------
+\section{Contexte et objectifs du projet}
+
+\subsection{Problématique}
+Les établissements scolaires cherchent à identifier précocement les élèves susceptibles d'échouer aux examens afin de cibler les actions pédagogiques (soutien, orientation, accompagnement). Ce projet vise à \textbf{modéliser le risque d'échec} à partir de facteurs observables liés au comportement, à l'environnement familial et aux ressources disponibles.
+
+\subsection{Objectif analytique}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Variable cible continue :} \texttt{Exam\_Score} (note d'examen sur une échelle 0--100).
+  \item \textbf{Variable cible binaire (risque) :} \texttt{Risk} définie par :
+  \[
+    \texttt{Risk} = \mathbb{1}(\texttt{Exam\_Score} < 60)
+  \]
+  où la valeur $1$ indique un \textbf{échec} (note strictement inférieure à 60) et $0$ une réussite.
+  \item \textbf{Objectif opérationnel :} construire une base analytique propre, explorer les relations entre facteurs et performance, puis préparer une matrice de caractéristiques pour la phase de \textbf{modélisation supervisée} (classification du risque).
+\end{itemize}
+
+\subsection{Périmètre des données}
+Le jeu \textit{Student Performance Factors} comporte environ \textbf{6\,607} enregistrements (version utilisée dans le dépôt) et \textbf{20} champs de base (19 facteurs explicatifs + \texttt{Exam\_Score}). Des colonnes dérivées éventuellement présentes dans le fichier source sont \textbf{exclues} au chargement afin de garantir la reproductibilité des indicateurs construits (risque, indices).
+
+% -----------------------------------------------------------------------------
+\section{Cadre méthodologique : CRISP-DM}
+
+La démarche \textbf{CRISP-DM} (Cross Industry Standard Process for Data Mining) structure le projet en phases interconnectées. Le tableau~\ref{tab:crispdm} résume l'avancement à la date du rapport.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Phases CRISP-DM et état d'avancement}
+  \label{tab:crispdm}
+  \begin{tabular}{@{}p{4.2cm}p{2.2cm}p{7.5cm}@{}}
+    \toprule
+    \textbf{Phase} & \textbf{Statut} & \textbf{Commentaire} \\
+    \midrule
+    Compréhension métier & \textbf{Faite} & Objectifs, critère d'échec ($<60$), usage éducatif du scoring. \\
+    Compréhension des données & \textbf{Faite} & Dictionnaire de variables, types, distributions initiales. \\
+    Préparation des données & \textbf{Faite} & Nettoyage, encodage, normalisation, variables dérivées, matrice \texttt{X}/\texttt{y}. \\
+    Modélisation & \textbf{À venir} & Entraînement de classifieurs, validation, gestion du déséquilibre des classes. \\
+    Évaluation & \textbf{À venir} & Métriques (ROC-AUC, PR-AUC, matrice de confusion), interprétation. \\
+    Déploiement & \textbf{Non démarré} & Mise en production / outil décisionnel : hors périmètre du rapport actuel. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+% -----------------------------------------------------------------------------
+\section{Compréhension métier (Business Understanding)}
+
+\subsection{Besoins}
+\begin{itemize}[leftmargin=*]
+  \item Prioriser les élèves à \textbf{risque d'échec} pour un suivi renforcé.
+  \item Comprendre quels \textbf{leviers actionnables} (présence, heures d'étude, tutorat, etc.) sont associés à la performance.
+\end{itemize}
+
+\subsection{Critères de succès}
+\begin{itemize}[leftmargin=*]
+  \item Qualité des données : absence de fuites d'information (ex.\ exclusion de \texttt{Exam\_Score} des prédicteurs lors de la prédiction de \texttt{Risk}).
+  \item Transparence : visualisations et commentaires interprétables pour un public académique (les graphiques correspondants sont générés par le script Python dans \texttt{outputs/}, mais ne figurent pas dans ce PDF).
+  \item Préparation d'un jeu \texttt{(X, y)} exploitable pour la modélisation supervisée.
+\end{itemize}
+
+% -----------------------------------------------------------------------------
+\section{Compréhension des données (Data Understanding)}
+
+\subsection{Liste des variables (facteurs + cible)}
+Les principales familles de variables sont : \textbf{engagement scolaire} (\texttt{Hours\_Studied}, \texttt{Attendance}), \textbf{environnement familial} (\texttt{Parental\_Involvement}, \texttt{Parental\_Education\_Level}, \texttt{Family\_Income}), \textbf{ressources} (\texttt{Access\_to\_Resources}, \texttt{Internet\_Access}, \texttt{Teacher\_Quality}), \textbf{comportement et bien-être} (\texttt{Sleep\_Hours}, \texttt{Physical\_Activity}, \texttt{Motivation\_Level}), \textbf{parcours} (\texttt{Previous\_Scores}, \texttt{Tutoring\_Sessions}), et \textbf{cible} \texttt{Exam\_Score}.
+
+\subsection{Types de variables}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Numériques :} heures d'étude, assiduité, sommeil, scores antérieurs, séances de tutorat, activité physique.
+  \item \textbf{Ordinales (échelles naturelles) :} par exemple \texttt{Motivation\_Level}, \texttt{Access\_to\_Resources} (Bas / Moyen / Haut).
+  \item \textbf{Nominales :} genre, type d'école, activités extrascolaires, etc.
+\end{itemize}
+
+\subsection{Déséquilibre de la cible \texttt{Risk}}
+Sur la version analysée du jeu, la proportion d'élèves en échec (\texttt{Risk}=1) est d'environ \textbf{1\,\%}. Ce déséquilibre impose, en phase de modélisation, l'usage de métriques adaptées (AUC-PR, courbes ROC interprétées avec prudence) et éventuellement des techniques de rééquilibrage ou de pondération des classes.
+
+% -----------------------------------------------------------------------------
+\section{Préparation des données (Data Preparation)}
+
+\subsection{Nettoyage}
+\begin{itemize}[leftmargin=*]
+  \item Contrôle des \textbf{valeurs manquantes} : imputation par la moyenne (variables numériques) et par le mode (variables catégorielles) lorsque nécessaire.
+  \item Suppression des \textbf{doublons}.
+  \item Contrôle des \textbf{types} : conversion explicite des colonnes numériques.
+  \item Analyse des \textbf{valeurs aberrantes} par la règle des boîtes à moustaches (IQR) ; décision documentée : conservation des extrêmes lorsqu'ils peuvent correspondre à des profils réels (effort ou assiduité exceptionnels).
+\end{itemize}
+
+\notevisuel{Le pipeline produit normalement le fichier \texttt{outputs/01\_boxplots\_numeric\_outliers.png} : une boîte à moustaches par variable numérique et pour \texttt{Exam\_Score}, afin de repérer visuellement médiane, dispersion et points extrêmes au-delà de 1{,}5$\times$IQR.}
+
+\subsection{Ingénierie de caractéristiques}
+Deux variables dérivées ont été construites :
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Indice de stress académique :}
+  \[
+    \texttt{Academic\_Stress\_Index} = \frac{\texttt{Hours\_Studied} \times (100 - \texttt{Attendance})}{\max(\texttt{Sleep\_Hours},\,0{,}5)}
+  \]
+  Interprétation : pression de travail élevée avec faible assiduité et peu de sommeil --- indicateur de surcharge potentielle.
+  \item \textbf{Score d'accès numérique :} combinaison de \texttt{Internet\_Access} (oui/non) et de \texttt{Access\_to\_Resources} (échelle ordinale codée 0--2), sur une échelle interprétable 0--5.
+\end{itemize}
+
+\notevisuel{Histogramme de \texttt{Academic\_Stress\_Index} et diagramme en barres des effectifs de \texttt{Digital\_Access\_Score} : voir \texttt{outputs/05\_engineered\_features.png} après exécution du code.}
+
+\subsection{Encodage et mise à l'échelle}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Encodage ordinal} (label encoding) pour les variables à échelle naturelle.
+  \item \textbf{One-hot encoding} pour les variables nominales (avec \texttt{drop\_first} pour limiter la colinéarité).
+  \item \textbf{Standardisation} des variables numériques continues dans la matrice finale \texttt{X}.
+\end{itemize}
+
+\subsection{Matrice d'apprentissage}
+La matrice \texttt{X} exclut \texttt{Exam\_Score} lorsque l'objectif est de prédire \texttt{Risk}, afin d'éviter une \textbf{fuite d'information} vers la cible. Les fichiers exportés sont :
+\begin{center}
+\texttt{outputs/processed/prepared\_X.csv}, \quad \texttt{outputs/processed/prepared\_y.csv}
+\end{center}
+
+% -----------------------------------------------------------------------------
+\section{Analyse exploratoire (EDA)}
+
+\subsection{Analyse univariée}
+Les distributions de \texttt{Exam\_Score}, \texttt{Hours\_Studied} et \texttt{Attendance} permettent de situer la cohorte par rapport au seuil d'échec et d'observer les asymétries éventuelles.
+
+\notevisuel{Histogrammes et boîte à moustaches : \texttt{outputs/02\_univariate\_hist\_exam\_hours\_attendance.png}. Diagramme en barres des effectifs \texttt{Risk} : \texttt{outputs/02b\_bar\_risk\_distribution.png} (mise en évidence du déséquilibre des classes).}
+
+\subsection{Analyse bivariée}
+Les nuages de points (\texttt{Exam\_Score} vs heures d'étude / assiduité) colorés par \texttt{Risk} mettent en évidence la proximité des points sous le seuil 60. Les boîtes à moustaches par niveau d'éducation parentale synthétisent les différences de médiane et de dispersion.
+
+\notevisuel{Panneau trois graphiques : \texttt{outputs/03\_bivariate\_score\_relationships.png}.}
+
+\subsection{Analyse multivariée}
+La carte de chaleur des corrélations (variables numériques + ordinales encodées) aide à repérer les blocs de variables corrélées et les associations avec la performance.
+
+\notevisuel{Matrice de corrélations colorée : \texttt{outputs/04\_correlation\_heatmap.png}. Les corrélations fortes avec \texttt{Exam\_Score} incluent notamment \texttt{Attendance} et \texttt{Hours\_Studied} sur la version traitée du jeu.}
+
+% -----------------------------------------------------------------------------
+\section{Sélection de variables}
+
+Une approche en deux volets a été appliquée :
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Corrélation} entre chaque prédicteur (dans \texttt{X} préparé) et \texttt{Risk} (valeur absolue).
+  \item \textbf{Importance des variables} via une forêt aléatoire (\texttt{RandomForestClassifier}) avec prise en compte du déséquilibre (\texttt{class\_weight}).
+\end{enumerate}
+Un classement combiné (moyenne des rangs) retient un sous-ensemble de variables les plus pertinentes pour la suite.
+
+\notevisuel{Barres horizontales des 15 plus grandes importances RF : \texttt{outputs/06\_feature\_importance\_rf.png}.}
+
+\subsection{Synthèse des facteurs mis en avant}
+Les analyses convergent vers l'importance de \textbf{l'assiduité (\texttt{Attendance})}, du \textbf{volume d'étude (\texttt{Hours\_Studied})}, des \textbf{scores antérieurs}, du \textbf{tutorat}, de la \textbf{distance domicile--école}, ainsi que des variables liées au \textbf{stress académique} et à l'\textbf{accès aux ressources}. Ces résultats sont cohérents avec une lecture métier : l'engagement régulier et le soutien pédagogique sont des leviers classiques de la réussite.
+
+% -----------------------------------------------------------------------------
+\section{Organisation du dépôt et reproductibilité}
+
+Le code a été structuré de manière professionnelle :
+\begin{itemize}[leftmargin=*]
+  \item \texttt{data/} : données brutes ;
+  \item \texttt{src/} : modules Python (\texttt{config}, \texttt{encoding}, \texttt{feature\_engineering}, \texttt{eda\_plotting}, \texttt{ml\_utils}, \texttt{pipeline}) ;
+  \item \texttt{notebooks/} : \texttt{01\_EDA.ipynb}, \texttt{02\_Modeling.ipynb} ;
+  \item \texttt{outputs/} : figures (si générées) et \texttt{processed/} pour les CSV préparés ;
+  \item \texttt{scripts/run\_pipeline.py} : exécution bout-en-bout \emph{avec} figures ; \texttt{scripts/run\_pipeline\_no\_figures.py} : même calculs \emph{sans} écrire les PNG.
+\end{itemize}
+
+\noindent Commandes :
+\begin{verbatim}
+python scripts/run_pipeline.py
+python scripts/run_pipeline_no_figures.py
+\end{verbatim}
+
+% -----------------------------------------------------------------------------
+\section{Interprétation métier (synthèse pour la soutenance)}
+
+Les indicateurs suggèrent que les politiques de \textbf{prévention du décrochage} gagneraient à combiner :
+\begin{itemize}[leftmargin=*]
+  \item le suivi de \textbf{l'assiduité} et des \textbf{heures d'étude structurées} ;
+  \item le renforcement des \textbf{dispositifs de tutorat} pour les profils à risque ;
+  \item l'attention aux situations de \textbf{surcharge} (indice de stress) et au \textbf{sommeil}.
+\end{itemize}
+Toute utilisation en milieu scolaire doit respecter le \textbf{cadre éthique} (transparence, non-discrimination, consentement) et valider les modèles sur des données locales avant toute décision automatisée.
+
+% -----------------------------------------------------------------------------
+\section{Prochaines étapes (feuille de route)}
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Modélisation :} régression logistique, forêt aléatoire, gradient boosting ; validation croisée stratifiée.
+  \item \textbf{Évaluation :} ROC-AUC, PR-AUC, F1-score, courbes de calibration ; analyse des faux positifs/négatifs.
+  \item \textbf{Déséquilibre :} SMOTE / pondération / seuil optimal selon le coût métier.
+  \item \textbf{Interprétation :} SHAP ou courbes de dépendance partielle sur les variables prioritaires.
+  \item \textbf{Rédaction finale :} intégration éventuelle des graphiques (version avec figures) et des tableaux de performances dans le mémoire de fin d'études.
+\end{enumerate}
+
+% -----------------------------------------------------------------------------
+\section{Conclusion}
+
+Le projet a atteint une \textbf{maturité solide en amont de la modélisation} : données nettoyées, cible \texttt{Risk} définie, variables ingénérées, EDA structurée, matrice \texttt{X}/\texttt{y} exportée et première sélection de variables. La phase suivante consiste à \textbf{entraîner et comparer des modèles} tout en traitant explicitement le \textbf{fort déséquilibre} de la classe d'échec, puis à documenter l'évaluation pour clore le cycle CRISP-DM sur les phases Modélisation et Évaluation.
+
+\vspace{1em}
+\noindent\rule{\textwidth}{0.4pt}
+
+\appendix
+\section{Annexe : formules et définitions}
+
+\begin{description}[style=nextline]
+  \item[Risk] Variable binaire : $1$ si $\texttt{Exam\_Score} < 60$, sinon $0$.
+  \item[Indice de stress académique] $(\texttt{Hours\_Studied} \times (100-\texttt{Attendance}))/\max(\texttt{Sleep\_Hours},0{,}5)$.
+  \item[Score d'accès numérique] Combinaison linéaire discrète d'Internet et du niveau d'accès aux ressources (détails dans le code source \texttt{src/feature\_engineering.py}).
+\end{description}
+
+\section{Annexe : dépendances logicielles}
+
+\texttt{pandas}, \texttt{numpy}, \texttt{matplotlib}, \texttt{seaborn}, \texttt{scikit-learn} (voir \texttt{requirements.txt}).
+
+\end{document}
