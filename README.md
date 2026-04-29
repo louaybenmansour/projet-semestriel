@@ -1,138 +1,127 @@
-# 🎓 Student Performance Predictor
+# 🎓 Prédicteur de Performance Étudiante - Système IA Hybride
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)](https://streamlit.io)
 [![Scikit-Learn](https://img.shields.io/badge/scikit--learn-%23F7931E.svg?style=for-the-badge&logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-%23FF6F00.svg?style=for-the-badge&logo=TensorFlow&logoColor=white)](https://www.tensorflow.org/)
 
-An end-to-end production-ready Hybrid AI system designed to predict student academic performance. It integrates traditional Machine Learning (Random Forest, XGBoost) with Deep Learning (Multi-Layer Perceptrons) to achieve maximum predictive accuracy.
-
----
-
-## 🚀 Project Overview
-
-This project implements a full hybrid ML/DL lifecycle:
-1.  **Exploratory Data Analysis (EDA)**: Comprehensive analysis of student factors.
-2.  **Feature Engineering**: Custom transformers for academic stress and digital access.
-3.  **Automated Model Selection**: Compares 6+ models (ML & DL) and picks the best performer based on RMSE.
-4.  **Deep Learning Stack**: Custom Keras/TensorFlow models with early stopping and regularization.
-5.  **Production API**: FastAPI serving the model with schema validation.
-6.  **Analytics Dashboard**: Premium Streamlit UI with real-time synthesis and visual insights.
+Bienvenue dans ce projet de pointe qui combine l'apprentissage automatique traditionnel (Machine Learning) et l'apprentissage profond (Deep Learning) pour prédire les résultats académiques des étudiants. Ce système est conçu pour être **prêt pour la production**, hautement performant et visuellement époustouflant.
 
 ---
 
-## 🧬 Hybrid Pipeline Flow
+## 🧐 Qu'est-ce que ce projet ? (Pour les nuls)
 
-```mermaid
-graph TD
-    A[Raw Data] --> B[Cleaning & Imputation]
-    B --> C[Feature Engineering]
-    C --> D[Preprocessing Pipeline]
-    D --> E1[ML Candidates]
-    D --> E2[DL Candidates]
-    E1 --> F[Cross-Evaluation]
-    E2 --> F
-    F --> G[Best Model Selection]
-    G --> H[Model Serialization]
-    H --> I[FastAPI / Streamlit]
-```
+Imaginez que vous êtes un directeur d'école. Vous voulez savoir quels étudiants risquent de rater leurs examens avant même qu'ils ne les passent. 
+
+Ce logiciel prend des données (heures d'étude, sommeil, assiduité, stress) et utilise une "intelligence" pour deviner la note finale. Mais il ne fait pas que deviner : il compare plusieurs types de cerveaux artificiels (modèles) et choisit automatiquement le plus précis.
 
 ---
 
-## 📁 Project Structure
+## 🚀 Le Pipeline Complet : De la donnée brute à la prédiction
+
+Voici comment les données circulent dans le système :
+
+### 1. 🧹 Nettoyage des Données (Data Cleaning)
+Le code regarde votre fichier Excel/CSV et répare les erreurs :
+- **Trous dans les données** : Si une note manque, il met la moyenne.
+- **Doublons** : Il supprime les lignes répétées pour ne pas fausser les résultats.
+- **Anomalies** : Il détecte les valeurs bizarres (ex: 100 heures d'étude par jour).
+
+### 2. 🧠 Ingénierie des Caractéristiques (Feature Engineering)
+Le système crée de nouvelles informations intelligentes à partir des données de base :
+- **Indice de Stress Académique** : Une formule magique qui combine les heures d'étude élevées avec un manque de sommeil et une faible assiduité.
+- **Score d'Accès Numérique** : Combine l'accès à Internet et aux ressources pour voir si l'étudiant a les outils pour réussir.
+
+### 3. ⚙️ Préparation (Preprocessing)
+Avant de donner les données à l'IA, on les transforme :
+- **Standardisation** : On met toutes les valeurs sur la même échelle (pour que les heures d'étude ne "pèsent" pas plus que le pourcentage d'assiduité).
+- **Encodage** : On transforme les mots (ex: "Oui", "Non", "Homme", "Femme") en chiffres que l'ordinateur comprend.
+
+### 4. 🏆 La Compétition des Modèles (Hybrid AI)
+Le script `train.py` lance une compétition entre plusieurs modèles :
+- **ML Classique** : Régression Linéaire, Random Forest (Forêt Aléatoire), Gradient Boosting.
+- **Deep Learning** : Trois architectures de réseaux de neurones (Simples et Complexes) créées avec TensorFlow/Keras.
+Le système calcule l'erreur (RMSE) de chaque modèle et sauvegarde **le champion** dans `models/model.pkl`.
+
+---
+
+## 📁 Structure du Projet (Organisation)
 
 ```text
 .
-├── backend/                # FastAPI application
-│   └── main.py             # API entry point
-├── data/                   # Raw and processed datasets
-├── frontend/               # UI components
-│   ├── app.py              # Premium Streamlit Dashboard
-│   └── index.html          # Legacy HTML/JS Frontend
-├── models/                 # Serialized model artifacts (.pkl)
-├── notebooks/              # Research & Development notebooks
-├── scripts/                # Utility and processing scripts
-├── src/                    # Core library (Feature engineering, Pipeline)
-├── train.py                # Main training orchestration script
-├── requirements.txt        # Unified dependency list
-└── .env.example            # Environment configuration template
+├── backend/                # Le "Cerveau" (API FastAPI) qui fait les calculs.
+├── frontend/               # Le "Visage" (Dashboard Streamlit) que vous utilisez.
+├── src/                    # La "Bibliothèque" centrale contenant toute la logique.
+├── deep_learning/          # Les plans de construction des réseaux de neurones.
+├── models/                 # Là où le modèle champion est stocké après l'entraînement.
+├── scripts/                # Outils de nettoyage et scripts d'analyse CRISP-DM.
+├── data/                   # Vos données (Fichier CSV).
+├── train.py                # Le chef d'orchestre qui entraîne et choisit le meilleur modèle.
+├── requirements.txt        # La liste des ingrédients (bibliothèques Python) nécessaires.
+├── docker-compose.yml      # Pour lancer tout le système en un clic avec Docker.
+└── .env.example            # Modèle pour vos variables de configuration.
 ```
 
 ---
 
-## 🛠️ Quick Start
+## 🛠️ Installation et Lancement (Pas à pas)
 
-### 1. Environment Setup
-```bash
-# Clone the repository
-git clone https://github.com/louaybenmansour/projet-semestriel.git
-cd projet-semestriel
+### Option A : Lancement Local (Recommandé pour le dev)
 
-# Create a virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+1.  **Préparer l'environnement** :
+    ```bash
+    # Créer un environnement virtuel
+    py -3.11 -m venv venv
+    # L'activer (Windows)
+    venv\Scripts\activate
+    # Installer les bibliothèques
+    pip install -r requirements.txt
+    ```
 
-# Install dependencies
-pip install -r requirements.txt
-```
+2.  **Entraîner l'IA** :
+    ```bash
+    py -3.11 train.py
+    ```
+    *Cela va lire les données, créer le modèle champion et générer des graphiques de performance.*
 
-### 2. Train the Model
-```bash
-python train.py
-```
-*This will process data, run EDA, and save the best model to `models/model.pkl`.*
+3.  **Lancer le Backend** :
+    ```bash
+    py -3.11 -m uvicorn backend.main:app --reload
+    ```
 
-### 3. Launch the Services
+4.  **Lancer le Frontend** :
+    ```bash
+    py -3.11 -m streamlit run frontend/app.py
+    ```
 
-**Start the Backend (API):**
-```bash
-uvicorn backend.main:app --reload
-```
+### Option B : Lancement Docker (Le plus simple et pro)
 
-**Start the Frontend (Streamlit):**
-```bash
-streamlit run frontend/app.py
-```
-
----
-
-## 🌐 API Documentation
-
-Once the backend is running, access the interactive documentation at:
-- **Swagger UI**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-- **ReDoc**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
-
-### Endpoint: `POST /predict`
-**Payload Example:**
-```json
-{
-  "StudyHours": 12.5,
-  "SleepHours": 7.0,
-  "Attendance": 92.0,
-  "StressLevel": 30.0
-}
-```
-
----
-
-## 🚢 Production Deployment
-
-### Docker (Recommended)
-A `docker-compose.yml` is provided for seamless deployment.
-
+Si vous avez Docker installé, une seule commande suffit :
 ```bash
 docker-compose up --build
 ```
-
-### Streamlit Cloud
-1. Push your code to GitHub.
-2. Connect your repository to [Streamlit Cloud](https://share.streamlit.io/).
-3. Set the `API_URL` environment variable to your deployed backend URL.
+- **Dashboard** : [http://localhost:8501](http://localhost:8501)
+- **Documentation API** : [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
-## 🤝 Contributors
-- **Louay Ben Mansour** - [GitHub](https://github.com/louaybenmansour)
+## 🎨 Le Dashboard "Cognitive Core"
+
+Le frontend Streamlit a été conçu pour être **premium** :
+- **🔮 Synthèse** : Entrez vos données et obtenez une prédiction instantanée avec des graphiques radar et des jauges.
+- **🏗️ Architecture** : Visualisez quel modèle a gagné la compétition et voyez ses courbes d'apprentissage.
+- **🧬 Pipeline** : Comprenez exactement comment vos données ont été transformées étape par étape.
 
 ---
-*Created for the Semestriel Project 2026.*
+
+## 📝 Historique des Changements Majeurs (Ce que j'ai fait)
+
+1.  **Réorganisation Totale** : J'ai structuré le projet de manière modulaire (src, backend, frontend) pour qu'il soit propre et facile à maintenir.
+2.  **Fusion des Dépendances** : Un seul `requirements.txt` pour tout le projet.
+3.  **IA Hybride** : Ajout de réseaux de neurones profonds (TensorFlow) en plus des modèles Scikit-Learn.
+4.  **Production Ready** : Ajout de fichiers Docker et support des variables d'environnement (`.env`).
+5.  **Interface de Luxe** : Création d'un dashboard Streamlit avec un design "Glassmorphism" et des animations fluides.
+6.  **Sécurité** : Ajout d'un `.gitignore` pour ne pas envoyer vos fichiers temporaires ou secrets sur GitHub.
+
+---
+*Projet Semestriel 2026 - Développé avec excellence par Louay Ben Mansour.*
