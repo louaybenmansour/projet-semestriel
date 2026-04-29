@@ -8,6 +8,8 @@ const errorBox = document.getElementById("error");
 const resultScore = document.getElementById("result-score");
 const resultLabel = document.getElementById("result-label");
 const resultInterpretation = document.getElementById("result-interpretation");
+const resultModelType = document.getElementById("result-model-type");
+const resultConfidence = document.getElementById("result-confidence");
 const sliderMap = [
   { id: "studyHours", rangeId: "studyHoursRange", badgeId: "studyHoursBadge", suffix: " h", decimals: 1 },
   { id: "sleepHours", rangeId: "sleepHoursRange", badgeId: "sleepHoursBadge", suffix: " h", decimals: 1 },
@@ -56,6 +58,9 @@ function renderResult(data) {
   resultScore.textContent = `${data.prediction}/100`;
   resultLabel.textContent = `Label: ${data.label}`;
   resultInterpretation.textContent = `Interpretation: ${data.interpretation}`;
+  resultModelType.textContent = `Model: ${data.model_name || "Unknown"} (${data.model_type || "ML"})`;
+  const confidencePct = Number(data.confidence || 0) * 100;
+  resultConfidence.textContent = `Confidence: ${confidencePct.toFixed(0)}%`;
   resultBox.classList.remove("hidden");
 }
 

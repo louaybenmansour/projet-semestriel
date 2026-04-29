@@ -2,19 +2,16 @@
 
 from __future__ import annotations
 
-import pickle
-from pathlib import Path
 from typing import Any
 
-import joblib
 import numpy as np
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from src.config import FAIL_THRESHOLD, MODELS_DIR, PROJECT_ROOT
-from src.production_ml import predict_score
+from src.config import FAIL_THRESHOLD
+from src.production_ml import load_model_bundle, predict_score
 
 app = FastAPI(
     title="Student Performance Predictor API",
@@ -30,11 +27,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MODEL_PKL_PATH = MODELS_DIR / "model.pkl"
-MODEL_ROOT_FALLBACK = PROJECT_ROOT / "model.pkl"
-MODEL_JOBLIB_PATH = MODELS_DIR / "student_score_model.joblib"
-
-
 class PredictionInput(BaseModel):
     StudyHours: float = Field(..., ge=0, le=24, description="Average study hours per day")
     SleepHours: float = Field(..., ge=0, le=16, description="Average sleep hours per day")
@@ -43,25 +35,7 @@ class PredictionInput(BaseModel):
 
 
 def _load_model() -> Any:
-    if MODEL_PKL_PATH.exists():
-        try:
-            return joblib.load(MODEL_PKL_PATH)
-        except Exception:
-            with MODEL_PKL_PATH.open("rb") as fh:
-                return pickle.load(fh)
-    if MODEL_ROOT_FALLBACK.exists():
-        try:
-            return joblib.load(MODEL_ROOT_FALLBACK)
-        except Exception:
-            with MODEL_ROOT_FALLBACK.open("rb") as fh:
-                return pickle.load(fh)
-    if MODEL_JOBLIB_PATH.exists():
-        return joblib.load(MODEL_JOBLIB_PATH)
-    raise FileNotFoundError(
-        "No model found. Expected one of: "
-        f"`{MODEL_PKL_PATH}`, `{MODEL_ROOT_FALLBACK}`, `{MODEL_JOBLIB_PATH}`. "
-        "Run `python train.py` first."
-    )
+    return load_model_bundle()
 
 
 def _safe_score_interpretation(score: float) -> str:
@@ -132,8 +106,8 @@ def _predict_from_bundle(model_bundle: dict[str, Any], payload: PredictionInput)
         "Distance_from_Home": "Moderate",
         "Gender": "Female",
     }
-    pred = predict_score(model_bundle, mapped_payload)["predicted_exam_score"]
-    return float(pred)
+    pred = predict_score(model_bundle, mapped_payload)
+    return float(pred["predicted_exam_score"])
 
 
 @app.get("/health")
@@ -145,16 +119,24 @@ def health() -> dict[str, str]:
 def predict(payload: PredictionInput) -> dict[str, Any]:
     try:
         model = _load_model()
-        if isinstance(model, dict) and "pipeline" in model:
+        if isinstance(model, dict) and "schema" in model:
             prediction = _predict_from_bundle(model, payload)
+            model_type = model.get("best_model_type", "ML")
+            model_name = model.get("best_model_name", "Unknown")
         else:
             prediction = _predict_from_generic_model(model, payload)
+            model_type = "ML"
+            model_name = "GenericModel"
         prediction = float(np.clip(prediction, 0, 100))
         label = "Pass" if prediction >= FAIL_THRESHOLD else "Fail"
+        confidence = max(0.0, min(1.0, abs(prediction - FAIL_THRESHOLD) / 40.0))
         return {
             "prediction": round(prediction, 2),
             "label": label,
             "interpretation": _safe_score_interpretation(prediction),
+            "confidence": round(confidence, 2),
+            "model_type": model_type,
+            "model_name": model_name,
             "threshold": FAIL_THRESHOLD,
         }
     except FileNotFoundError as exc:

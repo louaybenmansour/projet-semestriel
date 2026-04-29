@@ -2,10 +2,17 @@ import streamlit as st
 import requests
 import plotly.graph_objects as go
 import time
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # --- CONFIGURATION ---
-API_URL = "http://127.0.0.1:8000/predict"
-HEALTH_URL = "http://127.0.0.1:8000/health"
+DEFAULT_API_BASE = "http://127.0.0.1:8000"
+API_BASE = os.getenv("API_URL", DEFAULT_API_BASE).rstrip("/")
+API_URL = f"{API_BASE}/predict"
+HEALTH_URL = f"{API_BASE}/health"
 
 st.set_page_config(
     page_title="Cognitive Core",
@@ -243,7 +250,7 @@ def main():
     
     with col_logo:
         st.markdown("<div class='app-title'>Cognitive Core.</div>", unsafe_allow_html=True)
-        st.markdown("<div class='app-subtitle'>Predictive academic analytics engine.</div>", unsafe_allow_html=True)
+        st.markdown("<div class='app-subtitle'>Hybrid AI academic analytics engine.</div>", unsafe_allow_html=True)
         
     with col_status:
         is_online = check_backend_health()
@@ -258,89 +265,143 @@ def main():
         
     st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
     
-    # Dashboard Grid
-    col_input, col_spacer, col_dashboard = st.columns([1, 0.05, 1.5])
+    # Navigation Tabs
+    tab_predict, tab_arch, tab_pipeline = st.tabs(["🔮 Synthesis", "🏗️ Architecture", "🧬 Pipeline"])
     
-    with col_input:
-        with st.container(border=True):
-            st.markdown("<div class='section-title'><span>🧬</span> Biometrics Input</div>", unsafe_allow_html=True)
-            
-            study = st.slider("Daily Study Focus (Hrs)", min_value=0.0, max_value=24.0, value=6.0, step=0.5)
-            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-            
-            sleep = st.slider("REM Sleep Cycle (Hrs)", min_value=0.0, max_value=16.0, value=7.5, step=0.5)
-            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-            
-            attendance = st.slider("Institutional Presence (%)", min_value=0.0, max_value=100.0, value=85.0, step=1.0)
-            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-            
-            stress = st.slider("Cognitive Load / Stress", min_value=0.0, max_value=100.0, value=40.0, step=1.0)
-            
-            st.markdown("<div style='height: 25px;'></div>", unsafe_allow_html=True)
-            predict_btn = st.button("Synthesize Prediction")
+    with tab_predict:
+        col_input, col_spacer, col_dashboard = st.columns([1, 0.05, 1.5])
+        
+        with col_input:
+            with st.container(border=True):
+                st.markdown("<div class='section-title'><span>🧬</span> Biometrics Input</div>", unsafe_allow_html=True)
+                
+                study = st.slider("Daily Study Focus (Hrs)", min_value=0.0, max_value=24.0, value=6.0, step=0.5)
+                st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+                
+                sleep = st.slider("REM Sleep Cycle (Hrs)", min_value=0.0, max_value=16.0, value=7.5, step=0.5)
+                st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+                
+                attendance = st.slider("Institutional Presence (%)", min_value=0.0, max_value=100.0, value=85.0, step=1.0)
+                st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+                
+                stress = st.slider("Cognitive Load / Stress", min_value=0.0, max_value=100.0, value=40.0, step=1.0)
+                
+                st.markdown("<div style='height: 25px;'></div>", unsafe_allow_html=True)
+                predict_btn = st.button("Synthesize Prediction")
 
-    with col_dashboard:
-        with st.container(border=True):
-            st.markdown("<div class='section-title'><span>📊</span> Synthesis Dashboard</div>", unsafe_allow_html=True)
-            
-            if predict_btn:
-                if not is_online:
-                    st.error("Backend API is currently unreachable. Please ensure it is running.")
-                else:
-                    with st.spinner("Executing prediction matrices..."):
-                        time.sleep(0.5)
-                        payload = {"StudyHours": study, "SleepHours": sleep, "Attendance": attendance, "StressLevel": stress}
-                        
-                        try:
-                            res = requests.post(API_URL, json=payload, timeout=5)
-                            res.raise_for_status()
-                            data = res.json()
+        with col_dashboard:
+            with st.container(border=True):
+                st.markdown("<div class='section-title'><span>📊</span> Synthesis Dashboard</div>", unsafe_allow_html=True)
+                
+                if predict_btn:
+                    if not is_online:
+                        st.error("Backend API is currently unreachable. Please ensure it is running.")
+                    else:
+                        with st.spinner("Executing prediction matrices..."):
+                            time.sleep(0.5)
+                            payload = {"StudyHours": study, "SleepHours": sleep, "Attendance": attendance, "StressLevel": stress}
                             
-                            score = data.get("prediction", 0)
-                            threshold = data.get("threshold", 60)
-                            label = data.get("label", "Unknown")
-                            
-                            # Top Row: Charts
-                            c1, c2 = st.columns(2)
-                            with c1: st.plotly_chart(draw_arc_gauge(score, threshold), use_container_width=True, config={'displayModeBar': False})
-                            with c2: st.plotly_chart(draw_radar_analysis(study, sleep, attendance, stress), use_container_width=True, config={'displayModeBar': False})
-                            
-                            st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
-                            
-                            # Bottom Row: Metrics & Insights
-                            m1, m2 = st.columns(2)
-                            m1.metric(label="Predicted Trajectory", value=label)
-                            
-                            delta = score - threshold
-                            m2.metric(label="Delta from Threshold", value=f"{abs(delta):.1f} pts", delta="Above" if delta >= 0 else "Below", delta_color="normal" if delta >= 0 else "inverse")
-                            
-                            # Insight Footer
-                            if label == "Pass":
-                                st.markdown("""
-                                    <div class='insight-card' style='border-left: 3px solid #34d399;'>
-                                        <h5 style='color: #34d399; margin: 0 0 5px 0;'>Optimal Profile Confirmed</h5>
-                                        <p style='color: #a1a1aa; margin: 0; font-size: 0.95rem;'>Subject exhibits behavioral patterns heavily correlated with academic success. Continue standard protocols.</p>
-                                    </div>
-                                """, unsafe_allow_html=True)
-                            else:
-                                st.markdown("""
-                                    <div class='insight-card' style='border-left: 3px solid #f87171;'>
-                                        <h5 style='color: #f87171; margin: 0 0 5px 0;'>Critical Intervention Advised</h5>
-                                        <p style='color: #a1a1aa; margin: 0; font-size: 0.95rem;'>Subject deviating from success parameters. Recommend immediate adjustment to institutional presence.</p>
-                                    </div>
-                                """, unsafe_allow_html=True)
+                            try:
+                                res = requests.post(API_URL, json=payload, timeout=5)
+                                res.raise_for_status()
+                                data = res.json()
                                 
-                        except Exception as e:
-                            st.error(f"Synthesis failed: {str(e)}")
-            else:
-                # Awaiting State
-                st.markdown("""
-                    <div style='height: 480px; display: flex; align-items: center; justify-content: center; flex-direction: column;'>
-                        <div style='font-size: 4.5rem; opacity: 0.2; filter: drop-shadow(0 0 15px #8b5cf6);'>✨</div>
-                        <h3 style='color: #a1a1aa; font-weight: 300; margin-top: 25px;'>Awaiting Input</h3>
-                        <p style='color: #71717a; font-size: 0.95rem;'>Adjust the parameters and initialize synthesis.</p>
-                    </div>
-                """, unsafe_allow_html=True)
+                                score = data.get("prediction", 0)
+                                threshold = data.get("threshold", 60)
+                                label = data.get("label", "Unknown")
+                                m_type = data.get("model_type", "ML")
+                                m_name = data.get("model_name", "Unknown")
+                                
+                                # Top Row: Charts
+                                c1, c2 = st.columns(2)
+                                with c1: st.plotly_chart(draw_arc_gauge(score, threshold), use_container_width=True, config={'displayModeBar': False})
+                                with c2: st.plotly_chart(draw_radar_analysis(study, sleep, attendance, stress), use_container_width=True, config={'displayModeBar': False})
+                                
+                                st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
+                                
+                                # Bottom Row: Metrics & Insights
+                                m1, m2, m3 = st.columns(3)
+                                m1.metric(label="Predicted Trajectory", value=label)
+                                
+                                delta = score - threshold
+                                m2.metric(label="Delta from Threshold", value=f"{abs(delta):.1f} pts", delta="Above" if delta >= 0 else "Below", delta_color="normal" if delta >= 0 else "inverse")
+                                
+                                m3.metric(label="Active Core", value=m_name)
+                                
+                                # Insight Footer
+                                if label == "Pass":
+                                    st.markdown(f"""
+                                        <div class='insight-card' style='border-left: 3px solid #34d399;'>
+                                            <h5 style='color: #34d399; margin: 0 0 5px 0;'>Optimal Profile Confirmed (via {m_type})</h5>
+                                            <p style='color: #a1a1aa; margin: 0; font-size: 0.95rem;'>Subject exhibits behavioral patterns heavily correlated with academic success. Continue standard protocols.</p>
+                                        </div>
+                                    """, unsafe_allow_html=True)
+                                else:
+                                    st.markdown(f"""
+                                        <div class='insight-card' style='border-left: 3px solid #f87171;'>
+                                            <h5 style='color: #f87171; margin: 0 0 5px 0;'>Critical Intervention Advised (via {m_type})</h5>
+                                            <p style='color: #a1a1aa; margin: 0; font-size: 0.95rem;'>Subject deviating from success parameters. Recommend immediate adjustment to institutional presence.</p>
+                                        </div>
+                                    """, unsafe_allow_html=True)
+                                    
+                            except Exception as e:
+                                st.error(f"Synthesis failed: {str(e)}")
+                else:
+                    # Awaiting State
+                    st.markdown("""
+                        <div style='height: 480px; display: flex; align-items: center; justify-content: center; flex-direction: column;'>
+                            <div style='font-size: 4.5rem; opacity: 0.2; filter: drop-shadow(0 0 15px #8b5cf6);'>✨</div>
+                            <h3 style='color: #a1a1aa; font-weight: 300; margin-top: 25px;'>Awaiting Input</h3>
+                            <p style='color: #71717a; font-size: 0.95rem;'>Adjust the parameters and initialize synthesis.</p>
+                        </div>
+                    """, unsafe_allow_html=True)
+
+    with tab_arch:
+        with st.container(border=True):
+            st.markdown("<div class='section-title'><span>🏗️</span> Model Selection Strategy</div>", unsafe_allow_html=True)
+            
+            c1, c2 = st.columns([1, 1.5])
+            with c1:
+                st.write("Our engine dynamically selects the most accurate architecture by comparing traditional Machine Learning with Deep Learning Multi-Layer Perceptrons.")
+                
+                metrics_path = "models/model_metrics.csv"
+                if os.path.exists(metrics_path):
+                    import pandas as pd
+                    df_metrics = pd.read_csv(metrics_path)
+                    st.dataframe(df_metrics, hide_index=True, use_container_width=True)
+                else:
+                    st.info("Metrics registry not found. Run training to generate performance benchmarks.")
+            
+            with c2:
+                curves_path = "models/dl_training_curves.png"
+                if os.path.exists(curves_path):
+                    st.image(curves_path, caption="Deep Learning Convergence Curves (MSE)", use_container_width=True)
+                else:
+                    st.info("No Deep Learning training curves available in artifacts.")
+
+    with tab_pipeline:
+        with st.container(border=True):
+            st.markdown("<div class='section-title'><span>🧬</span> End-to-End Processing Pipeline</div>", unsafe_allow_html=True)
+            
+            st.markdown("""
+            ### 1. Data Sanitization
+            - Missing value imputation using median strategy for numeric features.
+            - Outlier detection and removal for target variables.
+            - Robust categorical encoding.
+
+            ### 2. Feature Engineering
+            - **Academic Stress Index**: Derived from study hours, attendance, and sleep quality.
+            - **Digital Access Score**: Composite metric representing institutional support and internet availability.
+
+            ### 3. Preprocessing Graph
+            - **Standardization**: Z-score scaling for deep learning compatibility.
+            - **One-Hot Encoding**: Nominal variable expansion.
+            - **Ordinal Mapping**: Preserving hierarchy in qualitative data (e.g., Parental Involvement).
+
+            ### 4. Hybrid Competition
+            - Parallel training of **Linear Regressors**, **Ensemble Trees** (Random Forest, Gradient Boosting), and **Deep Neural Networks**.
+            - Automatic serialization of the champion model for production deployment.
+            """)
 
 if __name__ == "__main__":
     main()

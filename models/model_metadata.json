@@ -1,0 +1,57 @@
+{
+  "best_model_name": "LinearRegression",
+  "best_model_type": "ML",
+  "schema": {
+    "feature_columns": [
+      "Hours_Studied",
+      "Attendance",
+      "Parental_Involvement",
+      "Access_to_Resources",
+      "Extracurricular_Activities",
+      "Sleep_Hours",
+      "Previous_Scores",
+      "Motivation_Level",
+      "Internet_Access",
+      "Tutoring_Sessions",
+      "Family_Income",
+      "Teacher_Quality",
+      "School_Type",
+      "Peer_Influence",
+      "Physical_Activity",
+      "Learning_Disabilities",
+      "Parental_Education_Level",
+      "Distance_from_Home",
+      "Gender",
+      "Academic_Stress_Index",
+      "Digital_Access_Score"
+    ],
+    "numeric_columns": [
+      "Hours_Studied",
+      "Attendance",
+      "Sleep_Hours",
+      "Previous_Scores",
+      "Tutoring_Sessions",
+      "Physical_Activity",
+      "Academic_Stress_Index",
+      "Digital_Access_Score"
+    ],
+    "categorical_columns": [
+      "Extracurricular_Activities",
+      "Internet_Access",
+      "School_Type",
+      "Learning_Disabilities",
+      "Gender"
+    ],
+    "ordinal_columns": [
+      "Parental_Involvement",
+      "Access_to_Resources",
+      "Motivation_Level",
+      "Teacher_Quality",
+      "Family_Income",
+      "Peer_Influence",
+      "Distance_from_Home",
+      "Parental_Education_Level"
+    ]
+  },
+  "threshold_fail": 60
+}
